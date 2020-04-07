@@ -10,23 +10,23 @@ def get_args(parser):
 	parser.add_argument('-results_dir', type=str, default='results/')
 	# parser.add_argument('-results_dir', type=str, default='/bigtemp/jjl5sw/deepENCODE/results/')
 	parser.add_argument('-epoch', type=int, default=50)
-	parser.add_argument('-batch_size', type=int, default=64)
+	parser.add_argument('-batch_size', type=int, default=32)  # default changed to 32 from 64
 	parser.add_argument('-test_batch_size', type=int, default=-1)
 	parser.add_argument('-d_model', type=int, default=512)
-	parser.add_argument('-d_inner_hid', type=int, default=-1)
+	parser.add_argument('-d_inner_hid', type=int, default=512)
 	parser.add_argument('-d_k', type=int, default=-1)
 	parser.add_argument('-d_v', type=int, default=-1)
-	parser.add_argument('-n_head', type=int, default=8)
+	parser.add_argument('-n_head', type=int, default=4)  # default changed to 8 from 4
 	parser.add_argument('-n_head2', type=int, default=0)
-	parser.add_argument('-n_layers_enc', type=int, default=5)
-	parser.add_argument('-n_layers_dec', type=int, default=None)
+	parser.add_argument('-n_layers_enc', type=int, default=2)  # default changed to 2 from 5
+	parser.add_argument('-n_layers_dec', type=int, default=2)  # default changed to 2 from None
 	parser.add_argument('-optim', type=str, choices=['adam', 'sgd'], default='adam')
 	parser.add_argument('-lr', type=float, default=0.0002)
 	parser.add_argument('-lr_step_size', type=int, default=1)
 	parser.add_argument('-lr_decay', type=float, default=0)
 	parser.add_argument('-max_encoder_len', type=int, default=300)
-	parser.add_argument('-dropout', type=float, default=0.1)
-	parser.add_argument('-dec_dropout', type=float, default=-1)
+	parser.add_argument('-dropout', type=float, default=0.2)  # default changed from 0.1 to 0.2
+	parser.add_argument('-dec_dropout', type=float, default=0.2)  # default changed from -1 to 0.2
 	parser.add_argument('-max_ar_length', type=int, default=30)
 	parser.add_argument('-label_smoothing', type=float, default=0.1)
 	parser.add_argument('-embs_share_weight', action='store_true')
@@ -41,10 +41,10 @@ def get_args(parser):
 	parser.add_argument('-bce_with_adv',action='store_true')
 	parser.add_argument('-save_mode', type=str, choices=['all', 'best'], default='best')
 	parser.add_argument('-encoder', type=str, choices=['rnn', 'graph', 'emb','mlp'], default='graph')
-	parser.add_argument('-decoder', type=str, choices=['sa_m','rnn_m','sa_b','graph','mlp'], default='sa_m')
+	parser.add_argument('-decoder', type=str, choices=['sa_m','rnn_m','sa_b','graph','mlp'], default='graph')  # default changed from sa_m to graph
 	parser.add_argument('-enc_transform', type=str, choices=['max', 'mean', 'flatten','sum',''], default='')
 	parser.add_argument('-lmbda', type=float, default=1)
-	parser.add_argument('-label_mask', type=str, choices=['none', 'inveye', 'prior'], default='none')
+	parser.add_argument('-label_mask', type=str, choices=['none', 'inveye', 'prior'], default='inveye')  # default changed from none to inveye
 	parser.add_argument('-load_emb', action='store_true')
 	parser.add_argument('-attn_type', type=str, choices=['softmax', 'sigmoid'], default='softmax')
 	parser.add_argument('-dual_br', type=float, default=1)
