@@ -70,7 +70,8 @@ def get_args(parser):
 	parser.add_argument('-graph_conv', action='store_true')
 	parser.add_argument('-attns_loss', action='store_true')
 	parser.add_argument('-thresh1', type=int, default=10)
-	parser.add_argument('-name', type=str, default=None) 
+	parser.add_argument('-name', type=str, default=None)
+	parser.add_argument('-change_data_split', action='store_true')
 	opt = parser.parse_args()
 	return opt
 

@@ -11,6 +11,22 @@ from os import path
 
 
 def process_data(data,opt):
+
+    if (opt.change_data_split):
+        ''' Changing data split of train, valid and test sets '''
+        zip_train = list(zip(data['train']['src'], data['train']['tgt']))
+        zip_valid = list(zip(data['valid']['src'], data['valid']['tgt']))
+        zip_test = list(zip(data['test']['src'], data['test']['tgt']))
+        zip_all = zip_train + zip_valid + zip_test
+        num_train, num_valid, num_test, num_all = len(zip_train), len(zip_valid), len(zip_test), len(zip_all)
+        random.shuffle(zip_all)
+        new_train = list(zip(*zip_all[:num_train]))
+        new_valid = list(zip(*zip_all[num_train:(num_train+num_valid)]))
+        new_test = list(zip(*zip_all[(num_train+num_valid):num_all]))
+        data['train']['src'], data['train']['tgt'] = new_train[0], new_train[1]
+        data['valid']['src'], data['valid']['tgt'] = new_valid[0], new_valid[1]
+        data['test']['src'], data['test']['tgt'] = new_test[0], new_test[1]
+
     label_adj_matrix = None
     if (opt.adj_matrix_lambda > 0):
         print('using heirarchy mask')
@@ -45,9 +61,6 @@ def process_data(data,opt):
 
 
         label_adj_matrix = adj_matrix
-
-
-
 
     
     label_vals = torch.zeros(len(data['train']['tgt']),len(data['dict']['tgt']))
