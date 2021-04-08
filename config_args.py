@@ -8,7 +8,6 @@ def get_args(parser):
 	parser.add_argument('-dataroot', type=str, default='data/')
 	parser.add_argument('-dataset', type=str, default='reuters')
 	parser.add_argument('-results_dir', type=str, default='results/')
-	# parser.add_argument('-results_dir', type=str, default='/bigtemp/jjl5sw/deepENCODE/results/')
 	parser.add_argument('-epoch', type=int, default=50)
 	parser.add_argument('-batch_size', type=int, default=32)  # default changed to 32 from 64
 	parser.add_argument('-test_batch_size', type=int, default=-1)
@@ -22,8 +21,8 @@ def get_args(parser):
 	parser.add_argument('-n_layers_dec', type=int, default=2)  # default changed to 2 from None
 	parser.add_argument('-optim', type=str, choices=['adam', 'sgd'], default='adam')
 	parser.add_argument('-lr', type=float, default=0.0002)
-	parser.add_argument('-lr_step_size', type=int, default=1)
-	parser.add_argument('-lr_decay', type=float, default=0)
+	parser.add_argument('-lr_step_size', type=int, default=10)
+	parser.add_argument('-lr_decay', type=float, default=0.1)
 	parser.add_argument('-max_encoder_len', type=int, default=300)
 	parser.add_argument('-dropout', type=float, default=0.1)
 	parser.add_argument('-dec_dropout', type=float, default=0.1)  # default changed from -1 to 0.2
@@ -105,7 +104,7 @@ def config_args(opt):
 	if opt.dec_dropout == -1:
 		opt.dec_dropout = opt.dropout
 
-	if opt.dataset in ['bibtext','delicious','bookmarks','sider']:
+	if opt.dataset in ['bibtext','delicious','bookmarks','sider', 'reuters']:
 		opt.no_enc_pos_embedding = True
 	elif opt.dataset == 'bookmarks':
 		opt.max_encoder_len = 500

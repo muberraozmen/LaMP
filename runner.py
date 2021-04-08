@@ -11,9 +11,14 @@ from pdb import set_trace as stop
 from tqdm import tqdm
 from train import train_epoch
 from test import test_epoch
+import pandas as pd
+
 warnings.filterwarnings("ignore")
 
 def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_optimizer,scheduler, opt, data_dict):
+	print(model)
+	print(opt)
+
 	logger = evals.Logger(opt)
 	
 	valid_losses = []
@@ -50,7 +55,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 		if 'reuters' in opt.dataset or 'bibtext' in opt.dataset:
 			torch.save(all_predictions,path.join(opt.model_name,'epochs','train_preds'+str(epoch_i+1)+'.pt'))
 			torch.save(all_targets,path.join(opt.model_name,'epochs','train_targets'+str(epoch_i+1)+'.pt'))
-		train_metrics, _ = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed)
+		train_metrics, _ = evals.compute_metrics(all_predictions,all_targets,train_loss,opt,elapsed)
 
 		################################### VALID ###################################
 		start = time.time()
@@ -62,7 +67,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 
 		torch.save(all_predictions,path.join(opt.model_name,'epochs','valid_preds'+str(epoch_i+1)+'.pt'))
 		torch.save(all_targets,path.join(opt.model_name,'epochs','valid_targets'+str(epoch_i+1)+'.pt'))
-		valid_metrics, valid_tau = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed)
+		valid_metrics, valid_tau = evals.compute_metrics(all_predictions,all_targets,valid_loss,opt,elapsed)
 		valid_losses += [valid_loss]
 
 		################################## TEST ###################################
@@ -75,7 +80,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 
 		torch.save(all_predictions,path.join(opt.model_name,'epochs','test_preds'+str(epoch_i+1)+'.pt'))
 		torch.save(all_targets,path.join(opt.model_name,'epochs','test_targets'+str(epoch_i+1)+'.pt'))
-		test_metrics, _ = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed, br_thresholds=valid_tau)
+		test_metrics, _ = evals.compute_metrics(all_predictions,all_targets,test_loss,opt,elapsed, br_thresholds=valid_tau)
 
 		results.append(test_metrics)
 		losses.append([epoch_i+1,train_loss,valid_loss,test_loss])

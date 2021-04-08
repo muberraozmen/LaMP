@@ -2,11 +2,11 @@
 
 #SBATCH --gres=gpu:1              # Number of GPUs (per node)
 #SBATCH --mem=8G                  # memory (per node)
-#SBATCH --time=0-1:00            # time (DD-HH:MM)
-#SBATCH --output=output_bibtex_lamp.log       # output file
-#SBATCH --error=err_bibtex_lamp.log           # error file
+#SBATCH --time=0-0:30            # time (DD-HH:MM)
+#SBATCH --output=output_bibtex_prior.log       # output file
+#SBATCH --error=err_bibtex_prior.log           # error file
 
-results_dir='/home/muberra/scratch/results_Apr7_bibtex_lamp/'
+results_dir='/home/muberra/scratch/results_Apr7_bibtex_prior/'
 dataroot='/home/muberra/scratch/data/'
 dataset=bibtex
 
