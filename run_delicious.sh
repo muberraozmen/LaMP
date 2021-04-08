@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --gres=gpu:1              # Number of GPUs (per node)
-#SBATCH --mem=8G                  # memory (per node)
+#SBATCH --mem=32G                  # memory (per node)
 #SBATCH --time=0-4:00            # time (DD-HH:MM)
 #SBATCH --output=output_delicious_prior.log       # output file
 #SBATCH --error=err_delicious_prior.log           # error file
