@@ -33,6 +33,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 		return
 
 	loss_file = open(path.join(opt.model_name,'losses.csv'),'w+')
+	results = []
 	for epoch_i in range(opt.epoch):
 		print('================= Epoch', epoch_i+1, '=================')
 		if scheduler and opt.lr_decay > 0: scheduler.step()
@@ -75,13 +76,12 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 		torch.save(all_predictions,path.join(opt.model_name,'epochs','test_preds'+str(epoch_i+1)+'.pt'))
 		torch.save(all_targets,path.join(opt.model_name,'epochs','test_targets'+str(epoch_i+1)+'.pt'))
 		test_metrics, _ = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed, br_thresholds=valid_tau)
-		
-		best_valid,best_test = logger.evaluate(train_metrics,valid_metrics,test_metrics,epoch_i,opt.total_num_parameters)
+
+		results.append(test_metrics)
+		losses.append([epoch_i+1,train_loss,valid_loss,test_loss])
 
 		print(opt.model_name)
 
-		losses.append([epoch_i+1,train_loss,valid_loss,test_loss])
-		
 		if not 'test' in opt.model_name and not opt.test_only:
 			utils.save_model(opt,epoch_i,model,valid_loss,valid_losses)
 
@@ -90,3 +90,15 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 		loss_file.write(','+str(valid_loss))
 		loss_file.write(','+str(test_loss))
 		loss_file.write('\n')
+
+	df = pd.DataFrame(results)
+	print('\n')
+	print('BEST PERFORMANCES OF TESTING')
+	print('####################################')
+	print('loss:  ' + str(df['loss'].min()))
+	print('ACC:   ' + str(df['ACC'].max()))
+	print('HA:    ' + str(df['HA'].max()))
+	print('ebF1:  ' + str(df['ebF1'].max()))
+	print('miF1:  ' + str(df['miF1'].max()))
+	print('maF1:  ' + str(df['maF1'].max()))
+	print('####################################')
