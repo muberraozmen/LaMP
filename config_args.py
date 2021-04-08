@@ -61,7 +61,7 @@ def get_args(parser):
 	parser.add_argument('-no_enc_pos_embedding', action='store_true')
 	parser.add_argument('-small', action='store_true')
 	parser.add_argument('-summarize_data', action='store_true')
-	parser.add_argument('-overwrite', action='store_true')
+	parser.add_argument('-overwrite', action='store_false')
 	parser.add_argument('-int_preds', action='store_true')
 	parser.add_argument('-test_only', action='store_true')
 	parser.add_argument('-load_pretrained', action='store_true')
@@ -255,7 +255,6 @@ def config_args(opt):
 	print(opt.model_name)
 
 	if (not opt.viz) and (not opt.overwrite) and (not 'test' in opt.model_name) and (path.exists(opt.model_name)) and (not opt.load_pretrained):
-	    overwrite_status = input('Already Exists. Overwrite? (y/n): ')
 	    if overwrite_status == 'rm':
 	    	os.system('rm -rf '+opt.model_name)
 	    elif not 'y' in overwrite_status:
