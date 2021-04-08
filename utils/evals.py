@@ -15,302 +15,11 @@ import os
 import pandas as pd
 # import pylab as pl
 from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import accuracy_score, hamming_loss, f1_score
 
 FORMAT = '[%(asctime)s] %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 LOGGER = logging.getLogger(__name__)
-
-
-def list2sparse(A, n_labels=None):
-    if n_labels is None:
-        n_labels_ = 0
-        for a in A:
-            if n_labels_ < numpy.max(a):
-                n_labels_ = numpy.max(a)
-        n_labels = n_labels_
-
-    n_samples = len(A)
-    mat = sp.dok_matrix((n_samples, n_labels))
-    for idx in xrange(n_samples):
-        for item in A[idx]:
-            mat[idx, item] = 1
-
-    return mat.tocsr()
-
-
-def is_sparse(matrix):
-    return sp.issparse(matrix)
-
-
-def is_binary_matrix(matrix):
-    return numpy.all(numpy.logical_xor(matrix != 1, matrix != 0))
-
-
-def sparse2dense(sparse_matrix):
-    """ convert a sparse matrix into a dense matrix of 0 or 1.
-
-    """
-    assert sp.issparse(sparse_matrix)
-
-    return numpy.asarray(sparse_matrix.toarray())
-
-
-def prepare_evaluation(targets, preds):
-    if is_sparse(targets):
-        targets = sparse2dense(targets)
-
-    if is_sparse(preds):
-        preds = sparse2dense(preds)
-
-    assert numpy.array_equal(targets.shape, preds.shape)
-    assert is_binary_matrix(targets)
-    assert is_binary_matrix(preds)
-
-    return (targets, preds)
-
-
-def subset_accuracy(true_targets, predictions, per_sample=False, axis=0):
-    # print(true_targets.shape)
-    # print(predictions.shape)
-    result = numpy.all(true_targets == predictions, axis=axis)
-
-    if not per_sample:
-        result = numpy.mean(result)
-
-    return result
-
-
-def hamming_loss(true_targets, predictions, per_sample=False, axis=0):
-
-    result = numpy.mean(numpy.logical_xor(true_targets, predictions),
-                        axis=axis)
-
-    if not per_sample:
-        result = numpy.mean(result)
-
-    return result
-
-
-def compute_tp_fp_fn(true_targets, predictions, axis=0):
-    # axis: axis for instance
-    tp = numpy.sum(true_targets * predictions, axis=axis).astype('float32')
-    fp = numpy.sum(numpy.logical_not(true_targets) * predictions,
-                   axis=axis).astype('float32')
-    fn = numpy.sum(true_targets * numpy.logical_not(predictions),
-                   axis=axis).astype('float32')
-
-    return (tp, fp, fn)
-
-
-def example_f1_score(true_targets, predictions, per_sample=False, axis=0):
-    tp, fp, fn = compute_tp_fp_fn(true_targets, predictions, axis=axis)
-
-    numerator = 2*tp
-    denominator = (numpy.sum(true_targets,axis=axis).astype('float32') + numpy.sum(predictions,axis=axis).astype('float32'))
-
-    zeros = numpy.where(denominator == 0)[0]
-
-    denominator = numpy.delete(denominator,zeros)
-    numerator = numpy.delete(numerator,zeros)
-
-    example_f1 = numerator/denominator
-
-
-    if per_sample:
-        f1 = example_f1
-    else:
-        f1 = numpy.mean(example_f1)
-
-    return f1
-
-
-
-def f1_score_from_stats(tp, fp, fn, average='micro'):
-    assert len(tp) == len(fp)
-    assert len(fp) == len(fn)
-
-    if average not in set(['micro', 'macro']):
-        raise ValueError("Specify micro or macro")
-
-    if average == 'micro':
-        f1 = 2*numpy.sum(tp) / \
-            float(2*numpy.sum(tp) + numpy.sum(fp) + numpy.sum(fn))
-
-    elif average == 'macro':
-
-        def safe_div(a, b):
-            """ ignore / 0, div0( [-1, 0, 1], 0 ) -> [0, 0, 0] """
-            with numpy.errstate(divide='ignore', invalid='ignore'):
-                c = numpy.true_divide(a, b)
-            return c[numpy.isfinite(c)]
-
-        f1 = numpy.mean(safe_div(2*tp, 2*tp + fp + fn))
-
-    return f1
-
-
-def f1_score(true_targets, predictions, average='micro', axis=0):
-    """
-        average: str
-            'micro' or 'macro'
-        axis: 0 or 1
-            label axis
-    """
-    if average not in set(['micro', 'macro']):
-        raise ValueError("Specify micro or macro")
-
-    tp, fp, fn = compute_tp_fp_fn(true_targets, predictions, axis=axis)
-    f1 = f1_score_from_stats(tp, fp, fn, average=average)
-
-    return f1
-
-
-
-
-
-
-def compute_aupr_thread(all_targets,all_predictions):
-    
-    aupr_array = []
-    lock = Lock()
-
-    def compute_aupr_(start,end,all_targets,all_predictions):
-        for i in range(all_targets.shape[1]):
-            try:
-                precision, recall, thresholds = metrics.precision_recall_curve(all_targets[:,i], all_predictions[:,i], pos_label=1)
-                auPR = metrics.auc(recall,precision,reorder=True)
-                lock.acquire() 
-                aupr_array.append(numpy.nan_to_num(auPR))
-                lock.release()
-            except Exception: 
-                pass
-                 
-    t1 = Thread(target=compute_aupr_, args=(0,100,all_targets,all_predictions) )
-    t2 = Thread(target=compute_aupr_, args=(100,200,all_targets,all_predictions) )
-    t3 = Thread(target=compute_aupr_, args=(200,300,all_targets,all_predictions) )
-    t4 = Thread(target=compute_aupr_, args=(300,400,all_targets,all_predictions) )
-    t5 = Thread(target=compute_aupr_, args=(400,500,all_targets,all_predictions) )
-    t6 = Thread(target=compute_aupr_, args=(500,600,all_targets,all_predictions) )
-    t7 = Thread(target=compute_aupr_, args=(600,700,all_targets,all_predictions) )
-    t8 = Thread(target=compute_aupr_, args=(700,800,all_targets,all_predictions) )
-    t9 = Thread(target=compute_aupr_, args=(800,900,all_targets,all_predictions) )
-    t10 = Thread(target=compute_aupr_, args=(900,919,all_targets,all_predictions) )
-    t1.start();t2.start();t3.start();t4.start();t5.start();t6.start();t7.start();t8.start();t9.start();t10.start()
-    t1.join();t2.join();t3.join();t4.join();t5.join();t6.join();t7.join();t8.join();t9.join();t10.join()
-    
-
-    aupr_array = numpy.array(aupr_array)
-
-    mean_aupr = numpy.mean(aupr_array)
-    median_aupr = numpy.median(aupr_array)
-    return mean_aupr,median_aupr,aupr_array
-
-def compute_fdr(all_targets,all_predictions, fdr_cutoff=0.5):
-    fdr_array = []
-    for i in range(all_targets.shape[1]):
-        try:
-            precision, recall, thresholds = metrics.precision_recall_curve(all_targets[:,i], all_predictions[:,i],pos_label=1)
-            fdr = 1- precision
-            cutoff_index = next(i for i, x in enumerate(fdr) if x <= fdr_cutoff)
-            fdr_at_cutoff = recall[cutoff_index]
-            if not math.isnan(fdr_at_cutoff):
-                fdr_array.append(numpy.nan_to_num(fdr_at_cutoff))
-        except: 
-            pass
-    
-    fdr_array = numpy.array(fdr_array)
-    mean_fdr = numpy.mean(fdr_array)
-    median_fdr = numpy.median(fdr_array)
-    var_fdr = numpy.var(fdr_array)
-    return mean_fdr,median_fdr,var_fdr,fdr_array
-
-
-def compute_aupr(all_targets,all_predictions):
-    aupr_array = []
-    for i in range(all_targets.shape[1]):
-        try:
-            precision, recall, thresholds = metrics.precision_recall_curve(all_targets[:,i], all_predictions[:,i], pos_label=1)
-            auPR = metrics.auc(recall,precision,reorder=True)
-            if not math.isnan(auPR):
-                aupr_array.append(numpy.nan_to_num(auPR))
-        except: 
-            pass
-    
-    aupr_array = numpy.array(aupr_array)
-    mean_aupr = numpy.mean(aupr_array)
-    median_aupr = numpy.median(aupr_array)
-    var_aupr = numpy.var(aupr_array)
-    return mean_aupr,median_aupr,var_aupr,aupr_array
-
-
-
-def compute_auc_thread(all_targets,all_predictions):
-    
-    auc_array = []
-    lock = Lock()
-
-    def compute_auc_(start,end,all_targets,all_predictions):
-        for i in range(start,end):
-            try:  
-                auROC = metrics.roc_auc_score(all_targets[:,i], all_predictions[:,i])
-                lock.acquire() 
-                if not math.isnan(auROC):
-                    auc_array.append(auROC)
-                lock.release()
-            except ValueError:
-                pass
-                
-    t1 = Thread(target=compute_auc_, args=(0,100,all_targets,all_predictions) )
-    t2 = Thread(target=compute_auc_, args=(100,200,all_targets,all_predictions) )
-    t3 = Thread(target=compute_auc_, args=(200,300,all_targets,all_predictions) )
-    t4 = Thread(target=compute_auc_, args=(300,400,all_targets,all_predictions) )
-    t5 = Thread(target=compute_auc_, args=(400,500,all_targets,all_predictions) )
-    t6 = Thread(target=compute_auc_, args=(500,600,all_targets,all_predictions) )
-    t7 = Thread(target=compute_auc_, args=(600,700,all_targets,all_predictions) )
-    t8 = Thread(target=compute_auc_, args=(700,800,all_targets,all_predictions) )
-    t9 = Thread(target=compute_auc_, args=(800,900,all_targets,all_predictions) )
-    t10 = Thread(target=compute_auc_, args=(900,919,all_targets,all_predictions) )
-    t1.start();t2.start();t3.start();t4.start();t5.start();t6.start();t7.start();t8.start();t9.start();t10.start()
-    t1.join();t2.join();t3.join();t4.join();t5.join();t6.join();t7.join();t8.join();t9.join();t10.join()
-    
-    auc_array = numpy.array(auc_array)
-
-    mean_auc = numpy.mean(auc_array)
-    median_auc = numpy.median(auc_array)
-    return mean_auc,median_auc,auc_array
-
-
-def compute_auc(all_targets,all_predictions):
-    auc_array = []
-    lock = Lock()
-
-    for i in range(all_targets.shape[1]):
-        try:  
-            auROC = metrics.roc_auc_score(all_targets[:,i], all_predictions[:,i])
-            auc_array.append(auROC)
-        except ValueError:
-            pass
-    
-    auc_array = numpy.array(auc_array)
-    mean_auc = numpy.mean(auc_array)
-    median_auc = numpy.median(auc_array)
-    var_auc = numpy.var(auc_array)
-    return mean_auc,median_auc,var_auc,auc_array
-
-
-def Find_Optimal_Cutoff(all_targets, all_predictions):
-    thresh_array = []
-    for j in range(all_targets.shape[1]):
-        try:
-            fpr, tpr, threshold = roc_curve(all_targets[:,j], all_predictions[:,j], pos_label=1)
-            i = numpy.arange(len(tpr)) 
-            roc = pd.DataFrame({'tf' : pd.Series(tpr-(1-fpr), index=i), 'threshold' : pd.Series(threshold, index=i)})
-            roc_t = roc.ix[(roc.tf-0).abs().argsort()[:1]]
-            thresh_array.append(list(roc_t['threshold'])[0])
-            
-        except: 
-            pass
-    return thresh_array
 
 
 def compute_metrics(all_predictions,all_targets,loss,args,elapsed,all_metrics=True,verbose=True):
@@ -318,7 +27,7 @@ def compute_metrics(all_predictions,all_targets,loss,args,elapsed,all_metrics=Tr
     all_predictions = all_predictions.numpy()
 
 
-    
+
 
     if all_metrics:
         meanAUC,medianAUC,varAUC,allAUC = compute_auc(all_targets,all_predictions)
@@ -331,32 +40,32 @@ def compute_metrics(all_predictions,all_targets,loss,args,elapsed,all_metrics=Tr
 
 
     optimal_threshold = args.br_threshold
-    
+
     # optimal_thresholds = Find_Optimal_Cutoff(all_targets,all_predictions)
     # optimal_threshold = numpy.mean(numpy.array(optimal_thresholds))
-    
+
 
     if args.decoder in ['mlp','rnn_b','graph']:
         all_predictions[all_predictions < optimal_threshold] = 0
         all_predictions[all_predictions >= optimal_threshold] = 1
     else:
-        all_predictions[all_predictions > 0.0] = 1 
+        all_predictions[all_predictions > 0.0] = 1
 
-    
-        
+
+
     acc_ = list(subset_accuracy(all_targets, all_predictions, axis=1, per_sample=True))
     hl_ = list(hamming_loss(all_targets, all_predictions, axis=1, per_sample=True))
-    exf1_ = list(example_f1_score(all_targets, all_predictions, axis=1, per_sample=True))        
+    exf1_ = list(example_f1_score(all_targets, all_predictions, axis=1, per_sample=True))
     acc = numpy.mean(acc_)
     hl = numpy.mean(hl_)
     exf1 = numpy.mean(exf1_)
-    
+
 
     tp, fp, fn = compute_tp_fp_fn(all_targets, all_predictions, axis=0)
     mif1 = f1_score_from_stats(tp, fp, fn, average='micro')
     maf1 = f1_score_from_stats(tp, fp, fn, average='macro')
 
-    
+
 
     eval_ret = OrderedDict([('Subset accuracy', acc),
                         ('Hamming accuracy', 1 - hl),
@@ -364,7 +73,7 @@ def compute_metrics(all_predictions,all_targets,loss,args,elapsed,all_metrics=Tr
                         ('Label-based Micro F1', mif1),
                         ('Label-based Macro F1', maf1)])
 
-    
+
     ACC = eval_ret['Subset accuracy']
     HA = eval_ret['Hamming accuracy']
     ebF1 = eval_ret['Example-based F1']
@@ -378,7 +87,7 @@ def compute_metrics(all_predictions,all_targets,loss,args,elapsed,all_metrics=Tr
         print('maF1:  '+str(maF1))
 
 
-    
+
     if verbose:
         print('uAUC:  '+str(meanAUC))
         # print('mAUC:  '+str(medianAUC))
@@ -405,6 +114,76 @@ def compute_metrics(all_predictions,all_targets,loss,args,elapsed,all_metrics=Tr
     metrics_dict['time'] = elapsed
 
     return metrics_dict
+
+
+def compute_metrics(predictions, targets, loss, args, elapsed_time, br_thresholds=None, verbose=True):
+    targets = targets.cpu().numpy()
+    predictions = predictions.cpu().numpy()
+    loss = loss/len(predictions)
+
+    if br_thresholds is None:
+        br_thresholds = {'ACC': 0, 'HA': 0, 'ebF1': 0, 'miF1': 0, 'maF1': 0}
+        metrics_dict = {'ACC': 0, 'HA': 0, 'ebF1': 0, 'miF1': 0, 'maF1': 0, 'loss': loss, 'time': elapsed_time}
+        for tau in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+            pred = predictions.copy()
+            pred[pred < tau] = 0
+            pred[pred >= tau] = 1
+            ACC = accuracy_score(targets, pred)
+            HA = 1 - hamming_loss(targets, pred)
+            ebF1 = f1_score(targets, pred, average='samples')
+            miF1 = f1_score(targets, pred, average='micro')
+            maF1 = f1_score(targets, pred, average='macro')
+            if ACC >= metrics_dict['ACC']:
+                metrics_dict['ACC'] = ACC
+                br_thresholds['ACC'] = tau
+            if HA >= metrics_dict['HA']:
+                metrics_dict['HA'] = HA
+                br_thresholds['HA'] = tau
+            if ebF1 >= metrics_dict['ebF1']:
+                metrics_dict['ebF1'] = ebF1
+                br_thresholds['ebF1'] = tau
+            if miF1 >= metrics_dict['miF1']:
+                metrics_dict['miF1'] = miF1
+                br_thresholds['miF1'] = tau
+            if maF1 >= metrics_dict['maF1']:
+                metrics_dict['maF1'] = maF1
+                br_thresholds['maF1'] = tau
+    else:
+        pred = predictions.copy()
+        pred[pred < br_thresholds['ACC']] = 0
+        pred[pred >= br_thresholds['ACC']] = 1
+        ACC = accuracy_score(targets, pred)
+        pred = predictions.copy()
+        pred[pred < br_thresholds['HA']] = 0
+        pred[pred >= br_thresholds['HA']] = 1
+        HA = 1 - hamming_loss(targets, pred)
+        pred = predictions.copy()
+        pred[pred < br_thresholds['ebF1']] = 0
+        pred[pred >= br_thresholds['ebF1']] = 1
+        ebF1 = f1_score(targets, pred, average='samples')
+        pred = predictions.copy()
+        pred[pred < br_thresholds['miF1']] = 0
+        pred[pred >= br_thresholds['miF1']] = 1
+        miF1 = f1_score(targets, pred, average='micro')
+        pred = predictions.copy()
+        pred[pred < br_thresholds['maF1']] = 0
+        pred[pred >= br_thresholds['maF1']] = 1
+        maF1 = f1_score(targets, pred, average='macro')
+        metrics_dict = {'ACC': ACC, 'HA': HA, 'ebF1': ebF1, 'miF1': miF1, 'maF1': maF1, 'loss': loss, 'time': elapsed_time}
+
+    if verbose:
+        print('####################################')
+        print('time:            ' + str(elapsed_time))
+        print('loss:            ' + str(loss))
+        print('ACC:             ' + str(ACC))
+        print('HA:              ' + str(HA))
+        print('ebF1:            ' + str(ebF1))
+        print('miF1:            ' + str(miF1))
+        print('maF1:            ' + str(maF1))
+        print('####################################')
+
+    return metrics_dict, br_thresholds
+
 
 
 class Logger:

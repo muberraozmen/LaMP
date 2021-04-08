@@ -49,7 +49,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 		if 'reuters' in opt.dataset or 'bibtext' in opt.dataset:
 			torch.save(all_predictions,path.join(opt.model_name,'epochs','train_preds'+str(epoch_i+1)+'.pt'))
 			torch.save(all_targets,path.join(opt.model_name,'epochs','train_targets'+str(epoch_i+1)+'.pt'))
-		train_metrics = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed,all_metrics=True)  
+		train_metrics, _ = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed)
 
 		################################### VALID ###################################
 		start = time.time()
@@ -61,7 +61,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 
 		torch.save(all_predictions,path.join(opt.model_name,'epochs','valid_preds'+str(epoch_i+1)+'.pt'))
 		torch.save(all_targets,path.join(opt.model_name,'epochs','valid_targets'+str(epoch_i+1)+'.pt'))
-		valid_metrics = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed,all_metrics=True)
+		valid_metrics, valid_tau = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed)
 		valid_losses += [valid_loss]
 
 		################################## TEST ###################################
@@ -74,7 +74,7 @@ def run_model(model, train_data, valid_data, test_data, crit, optimizer,adv_opti
 
 		torch.save(all_predictions,path.join(opt.model_name,'epochs','test_preds'+str(epoch_i+1)+'.pt'))
 		torch.save(all_targets,path.join(opt.model_name,'epochs','test_targets'+str(epoch_i+1)+'.pt'))
-		test_metrics = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed,all_metrics=True)
+		test_metrics, _ = evals.compute_metrics(all_predictions,all_targets,0,opt,elapsed, br_thresholds=valid_tau)
 		
 		best_valid,best_test = logger.evaluate(train_metrics,valid_metrics,test_metrics,epoch_i,opt.total_num_parameters)
 
