@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --gres=gpu:1              # Number of GPUs (per node)
+#SBATCH --gres=gpu:2              # Number of GPUs (per node)
 #SBATCH --mem=64G                  # memory (per node)
 #SBATCH --time=0-4:00            # time (DD-HH:MM)
 #SBATCH --output=output_delicious_prior.log       # output file
