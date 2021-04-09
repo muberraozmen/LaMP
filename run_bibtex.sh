@@ -6,7 +6,7 @@
 #SBATCH --output=output_bibtex_prior.log       # output file
 #SBATCH --error=err_bibtex_prior.log           # error file
 
-results_dir='/home/muberra/scratch/results_Apr7_bibtex_prior/'
+results_dir='/home/muberra/scratch/results_Apr9_bibtex_prior/'
 dataroot='/home/muberra/scratch/data/'
 dataset=bibtex
 

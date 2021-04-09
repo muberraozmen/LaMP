@@ -6,7 +6,7 @@
 #SBATCH --output=output_reuters_none.log       # output file
 #SBATCH --error=err_reuters_none.log           # error file
 
-results_dir='/home/muberra/scratch/results_Apr7_reuters_lamp/'
+results_dir='/home/muberra/scratch/results_Apr9_reuters_lamp/'
 dataroot='/home/muberra/scratch/data/'
 dataset=reuters
 
