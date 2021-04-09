@@ -21,8 +21,8 @@ def get_args(parser):
 	parser.add_argument('-n_layers_dec', type=int, default=2)  # default changed to 2 from None
 	parser.add_argument('-optim', type=str, choices=['adam', 'sgd'], default='adam')
 	parser.add_argument('-lr', type=float, default=0.0002)
-	parser.add_argument('-lr_step_size', type=int, default=10)
-	parser.add_argument('-lr_decay', type=float, default=0.1)
+	parser.add_argument('-lr_step_size', type=int, default=1)
+	parser.add_argument('-lr_decay', type=float, default=0)
 	parser.add_argument('-max_encoder_len', type=int, default=300)
 	parser.add_argument('-dropout', type=float, default=0.1)
 	parser.add_argument('-dec_dropout', type=float, default=0.1)  # default changed from -1 to 0.2
@@ -111,7 +111,7 @@ def config_args(opt):
 		opt.max_ar_length = 48
 
 	if opt.d_inner_hid == -1:
-		opt.d_inner_hid = int(opt.d_model*2)
+		opt.d_inner_hid = int(opt.d_model)
 
 	if opt.encoder == 'emb':
 		opt.n_layers_enc = 1
