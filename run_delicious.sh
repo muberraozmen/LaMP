@@ -6,7 +6,7 @@
 #SBATCH --output=output_delicious_prior.log       # output file
 #SBATCH --error=err_delicious_prior.log           # error file
 
-results_dir='/home/muberra/scratch/results_Apr9_delicious_prior/'
+results_dir='/home/muberra/scratch/results_Apr11_delicious_lamp/'
 dataroot='/home/muberra/scratch/data/'
 dataset=delicious
 

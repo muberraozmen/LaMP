@@ -26,7 +26,6 @@ LOGGER = logging.getLogger(__name__)
 def compute_metrics(predictions, targets, loss, args, elapsed_time, br_thresholds=None, verbose=True):
     targets = targets.cpu().numpy()
     predictions = predictions.cpu().numpy()
-    loss = loss/len(predictions)
 
     if br_thresholds is None:
         br_thresholds = {'ACC': 0, 'HA': 0, 'ebF1': 0, 'miF1': 0, 'maF1': 0}

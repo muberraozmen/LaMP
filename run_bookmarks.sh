@@ -6,7 +6,7 @@
 #SBATCH --output=output_bookmarks_none.log       # output file
 #SBATCH --error=err_bookmarks_none.log           # error file
 
-results_dir='/home/muberra/scratch/results_Apr9_bookmarks_none/'
+results_dir='/home/muberra/scratch/results_Apr11_bookmarks_lamp/'
 dataroot='/home/muberra/scratch/data/'
 dataset=bookmarks
 
