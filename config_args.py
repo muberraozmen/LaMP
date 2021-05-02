@@ -26,11 +26,11 @@ def get_args(parser):
 	parser.add_argument('-max_encoder_len', type=int, default=300)
 	parser.add_argument('-dropout', type=float, default=0.1)
 	parser.add_argument('-dec_dropout', type=float, default=0.1)  # default changed from -1 to 0.2
-	parser.add_argument('-max_ar_length', type=int, default=30)
-	parser.add_argument('-label_smoothing', type=float, default=0.1)
-	parser.add_argument('-embs_share_weight', action='store_true')
+	parser.add_argument('-max_ar_length', type=int, default=30) #TODO
+	parser.add_argument('-label_smoothing', type=float, default=0.1) #TODO
+	parser.add_argument('-embs_share_weight', action='store_true') #TODO
 	parser.add_argument('-proj_share_weight', action='store_true')
-	parser.add_argument('-no_dec_self_att', action='store_true')
+	parser.add_argument('-no_dec_self_att', action='store_false') #TODO
 	parser.add_argument('-adj_matrix_lambda', type=float, default=0.0)
 	parser.add_argument('-log', default=None)
 	parser.add_argument('-loss', type=str, choices=['ce','adv','ranking'], default='ce')
@@ -53,7 +53,7 @@ def get_args(parser):
 	parser.add_argument('-onehot', action='store_true')
 	parser.add_argument('-no_cuda', action='store_true')
 	parser.add_argument('-pretrain', action='store_true')
-	parser.add_argument('-bce_smoothing', type=float, default=1.0)
+	parser.add_argument('-bce_smoothing', type=float, default=1.0) #TODO
 	parser.add_argument('-multi_gpu', action='store_true')
 	parser.add_argument('-viz', action='store_true')
 	parser.add_argument('-gpu_id', type=int, default=-1)

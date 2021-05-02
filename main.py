@@ -21,34 +21,6 @@ opt = config_args(args)
 def main(opt):
 	#========= Loading Dataset =========#
 	data = torch.load(opt.data)
-	vocab_size = len(data['dict']['tgt'])
-	
-	global_labels = None
-	for i in range(len(data['train']['src'])):
-		labels = torch.tensor(data['train']['tgt'][i]).unsqueeze(0)
-		labels = utils.get_gold_binary_full(labels,vocab_size)
-		if global_labels is None:
-			global_labels = labels
-		else:
-			global_labels+=labels
-
-	for i in range(len(data['valid']['src'])):
-		labels = torch.tensor(data['valid']['tgt'][i]).unsqueeze(0)
-		labels = utils.get_gold_binary_full(labels,vocab_size)
-		global_labels+=labels
-		
-	for i in range(len(data['test']['src'])):
-		labels = torch.tensor(data['test']['tgt'][i]).unsqueeze(0)
-		labels = utils.get_gold_binary_full(labels,vocab_size)
-		global_labels+=labels
-
-	global_labels = global_labels[0][0:-4]
-
-	ranked_labels,ranked_idx = torch.sort(global_labels)
-
-	indices = ranked_idx[2:24].long()
-	label_count = ranked_labels[2:24]
-
 
 	train_data,valid_data,test_data,label_adj_matrix,opt = process_data(data,opt)
 	print(opt)
