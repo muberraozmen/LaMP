@@ -3,10 +3,10 @@
 #SBATCH --gres=gpu:1              # Number of GPUs (per node)
 #SBATCH --mem=32G                  # memory (per node)
 #SBATCH --time=0-8:00            # time (DD-HH:MM)
-#SBATCH --output=out.bookmarks.lamp1.log       # output file
-#SBATCH --error=err.bookmarks.lamp1.log           # error file
+#SBATCH --output=out.bookmarks.lamp2.log       # output file
+#SBATCH --error=err.bookmarks.lamp2.log           # error file
 
-results_dir='/home/muberra/scratch/results_May1_bookmarks_lamp1/'
+results_dir='/home/muberra/scratch/results_May1_bookmarks_lamp2/'
 dataroot='/home/muberra/scratch/data/'
 dataset=bookmarks
 

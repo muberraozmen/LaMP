@@ -30,7 +30,7 @@ def get_args(parser):
 	parser.add_argument('-label_smoothing', type=float, default=0.1) #TODO
 	parser.add_argument('-embs_share_weight', action='store_true') #TODO
 	parser.add_argument('-proj_share_weight', action='store_true')
-	parser.add_argument('-no_dec_self_att', action='store_false') #TODO
+	parser.add_argument('-no_dec_self_att', action='store_true') #TODO
 	parser.add_argument('-adj_matrix_lambda', type=float, default=0.0)
 	parser.add_argument('-log', default=None)
 	parser.add_argument('-loss', type=str, choices=['ce','adv','ranking'], default='ce')

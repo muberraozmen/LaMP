@@ -3,10 +3,10 @@
 #SBATCH --gres=gpu:1              # Number of GPUs (per node)
 #SBATCH --mem=8G                  # memory (per node)
 #SBATCH --time=0-1:00            # time (DD-HH:MM)
-#SBATCH --output=out.reuters.lamp1.log       # output file
-#SBATCH --error=err.reuters.lamp1.log           # error file
+#SBATCH --output=out.reuters.lamp2.log       # output file
+#SBATCH --error=err.reuters.lamp2.log           # error file
 
-results_dir='/home/muberra/scratch/results_May1_reuters_lamp1/'
+results_dir='/home/muberra/scratch/results_May1_reuters_lamp2/'
 dataroot='/home/muberra/scratch/data/'
 dataset=reuters
 
