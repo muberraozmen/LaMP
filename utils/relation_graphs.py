@@ -54,8 +54,8 @@ def _by_chi2_contingency(tgt_binary, alpha, return_skeleton=False):
         pushing = skeleton * (conditional < marginal[:, None])
         np.fill_diagonal(pulling, 0)
         np.fill_diagonal(pushing, 0)
-        pulling = torch.tensor(pulling).unsqueeze(0).cuda()
-        pushing = torch.tensor(pushing).unsqueeze(0).cuda()
+        pulling = torch.tensor(pulling).unsqueeze(0)
+        pushing = torch.tensor(pushing).unsqueeze(0)
 
         adjs = [pulling, pushing]
 
