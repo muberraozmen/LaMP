@@ -3,10 +3,10 @@
 #SBATCH --gres=gpu:2              # Number of GPUs (per node)
 #SBATCH --mem=64G                  # memory (per node)
 #SBATCH --time=0-4:00            # time (DD-HH:MM)
-#SBATCH --output=out.delicious.lamp3.log       # output file
-#SBATCH --error=err.delicious.lamp3.log           # error file
+#SBATCH --output=out.delicious.lamp_mrmp.log       # output file
+#SBATCH --error=err.delicious.lamp_mrmp.log           # error file
 
-results_dir='/home/muberra/scratch/results_May1_delicious_lamp3/'
+results_dir='/home/muberra/scratch/results_May5_delicious_lamp/'
 dataroot='/home/muberra/scratch/data/'
 dataset=delicious
 
