@@ -6,7 +6,7 @@ import os
 
 def get_args(parser):
 	parser.add_argument('-dataroot', type=str, default='/Users/mob/Documents/PycharmProjects/mlc/data/')
-	parser.add_argument('-dataset', type=str, default='reuters')
+	parser.add_argument('-dataset', type=str, default='bibtex')
 	parser.add_argument('-results_dir', type=str, default='results/')
 	parser.add_argument('-epoch', type=int, default=50)
 	parser.add_argument('-batch_size', type=int, default=32)  # default changed to 32 from 64
@@ -30,7 +30,7 @@ def get_args(parser):
 	parser.add_argument('-label_smoothing', type=float, default=0.1) #TODO
 	parser.add_argument('-embs_share_weight', action='store_true') #TODO
 	parser.add_argument('-proj_share_weight', action='store_true')
-	parser.add_argument('-no_dec_self_att', action='store_true') #TODO
+	parser.add_argument('-no_dec_self_att', action='store_false') #TODO
 	parser.add_argument('-adj_matrix_lambda', type=float, default=0.0)
 	parser.add_argument('-log', default=None)
 	parser.add_argument('-loss', type=str, choices=['ce','adv','ranking'], default='ce')
@@ -51,7 +51,7 @@ def get_args(parser):
 	parser.add_argument('-beam_size', type=int, default=5,help='Beam size')
 	parser.add_argument('-n_best', type=int, default=1)
 	parser.add_argument('-onehot', action='store_true')
-	parser.add_argument('-no_cuda', action='store_true')
+	parser.add_argument('-no_cuda', action='store_true') # KK
 	parser.add_argument('-pretrain', action='store_true')
 	parser.add_argument('-bce_smoothing', type=float, default=1.0) #TODO
 	parser.add_argument('-multi_gpu', action='store_true')
@@ -71,6 +71,9 @@ def get_args(parser):
 	parser.add_argument('-thresh1', type=int, default=10)
 	parser.add_argument('-name', type=str, default=None)
 	parser.add_argument('-change_data_split', action='store_true')
+	parser.add_argument('-mrmp', choices=[None, 'chi2', 'kMc2', 'occ'], default='chi2')
+	parser.add_argument('-reln_loss_on', action='store_false')
+
 	opt = parser.parse_args()
 	return opt
 

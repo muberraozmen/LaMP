@@ -22,7 +22,7 @@ def main(opt):
 	#========= Loading Dataset =========#
 	data = torch.load(opt.data)
 
-	train_data,valid_data,test_data,label_adj_matrix,opt = process_data(data,opt)
+	train_data,valid_data,test_data,label_adj_matrix,opt, mrmp_adj = process_data(data,opt)
 	print(opt)
 
 	#========= Preparing Model =========#
@@ -57,7 +57,8 @@ def main(opt):
 		label_mask=opt.label_mask,
 		matching_mlp=opt.matching_mlp,
 		graph_conv=opt.graph_conv,
-		int_preds=opt.int_preds)
+		int_preds=opt.int_preds,
+		mrmp_adj=mrmp_adj)
 
 	print(model)
 	print(opt.model_name)

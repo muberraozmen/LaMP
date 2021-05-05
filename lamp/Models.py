@@ -22,7 +22,7 @@ class LAMP(nn.Module):
             dropout=0.1, dec_dropout=0.1,dec_dropout2=0.1, proj_share_weight=True, embs_share_weight=True, 
             encoder='selfatt',decoder='sa_m',enc_transform='',onehot=False,no_enc_pos_embedding=False,
             no_dec_self_att=False,loss='ce',label_adj_matrix=None,label_mask=None,matching_mlp=False,
-            graph_conv=False,attn_type='softmax',int_preds=False):
+            graph_conv=False,attn_type='softmax',int_preds=False, mrmp_adj=None):
 
         super(LAMP, self).__init__()
         self.decoder_type = decoder
@@ -66,7 +66,7 @@ class LAMP(nn.Module):
                 d_inner_hid=d_inner_hid, dropout=dec_dropout,dropout2=dec_dropout2,
                 no_dec_self_att=no_dec_self_att,label_adj_matrix=label_adj_matrix,
                 label_mask=label_mask,enc_vec=self.enc_vec,graph_conv=graph_conv,
-                attn_type=attn_type)
+                attn_type=attn_type, mrmp_adj=mrmp_adj, reln_loss_on=True)
         elif decoder == 'mlp':
             self.decoder = MLPDecoder(
                 n_tgt_vocab, n_max_seq_e, n_max_seq_d, n_layers=n_layers_dec, n_head=n_head,
@@ -114,7 +114,7 @@ class LAMP(nn.Module):
             tgt_seq = tgt_seq[:, :-1]
 
         enc_output, *enc_self_attns = self.encoder(src_seq, adj, src_pos,return_attns=return_attns)
-        dec_output, *dec_output2 = self.decoder(tgt_seq,src_seq,enc_output,return_attns=return_attns,int_preds=int_preds)
+        dec_output, reln_dist, *dec_output2 = self.decoder(tgt_seq,src_seq,enc_output,return_attns=return_attns,int_preds=int_preds)
 
         if self.decoder_type == 'rnn_m':
             seq_logit = dec_output
@@ -130,8 +130,8 @@ class LAMP(nn.Module):
             for int_idx,int_out in enumerate(dec_output2[0][:-1]):
                 int_out = torch.bmm(int_out,tgt_word_proj_copy.transpose(1,2))
                 intermediate_preds += [torch.diagonal(int_out,0,1,2)]
-            return seq_logit.view(-1, seq_logit.size(-1)),enc_output, intermediate_preds
+            return seq_logit.view(-1, seq_logit.size(-1)), reln_dist, enc_output, intermediate_preds
         elif return_attns:
-            return seq_logit.view(-1,seq_logit.size(-1)),enc_output,enc_self_attns,dec_output2
+            return seq_logit.view(-1,seq_logit.size(-1)), reln_dist, enc_output,enc_self_attns,dec_output2
         else:
-            return seq_logit.view(-1,seq_logit.size(-1)),enc_output,None
+            return seq_logit.view(-1,seq_logit.size(-1)), reln_dist, enc_output,None

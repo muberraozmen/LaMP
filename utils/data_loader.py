@@ -8,9 +8,30 @@ from pdb import set_trace as stop
 import utils
 from os import path
 
+from utils.relation_graphs import _by_chi2_contingency
 
+def convert_tgt_seq_to_binary(data):
+    def seq2binary(tgt_seq, num_labels, constants_values):
+        tgt_binary = list()
+        for i in range(len(tgt_seq)):
+            y = np.zeros(num_labels)
+            y[tgt_seq[i]] = 1
+            y = np.delete(y, constants_values).astype(int)
+            tgt_binary.append(y)
+        return tgt_binary
+
+    constants_dict = {Constants.UNK_WORD: Constants.UNK, Constants.EOS_WORD: Constants.EOS,
+                        Constants.BOS_WORD: Constants.BOS, Constants.PAD_WORD: Constants.PAD}
+
+    data['train']['tgt_binary'] = seq2binary(data['train']['tgt'], len(data['dict']['tgt']), list(constants_dict.values()))
+    data['valid']['tgt_binary'] = seq2binary(data['valid']['tgt'], len(data['dict']['tgt']), list(constants_dict.values()))
+    data['test']['tgt_binary'] = seq2binary(data['test']['tgt'], len(data['dict']['tgt']), list(constants_dict.values()))
+
+    return data
 
 def process_data(data,opt):
+
+    data = convert_tgt_seq_to_binary(data)
 
     if (opt.change_data_split):
         ''' Changing data split of train, valid and test sets '''
@@ -47,7 +68,7 @@ def process_data(data,opt):
         # label_adj_matrix[label_adj_matrix < 0.0] = 0
         # for i in range(label_adj_matrix.size(0)): label_adj_matrix[i,i] = 0
         # label_adj_matrix[label_adj_matrix > 0] = 1
-        
+
 
 
         adj_matrix = torch.eye(len(data['dict']['tgt'])-4)
@@ -89,7 +110,7 @@ def process_data(data,opt):
 
     opt.max_token_seq_len_e = data['settings'].max_seq_len
     opt.max_token_seq_len_d = opt.max_ar_length
-    
+
     if opt.summarize_data:
         utils.summarize_data(data)
 
@@ -111,7 +132,7 @@ def process_data(data,opt):
 
     valid_data = DataLoader(
         data['dict']['src'],
-        data['dict']['tgt'], 
+        data['dict']['tgt'],
         src_insts=data['valid']['src'],
         adj_insts=data['valid']['adj'],
         tgt_insts=data['valid']['tgt'],
@@ -122,7 +143,7 @@ def process_data(data,opt):
 
     test_data = DataLoader(
         data['dict']['src'],
-        data['dict']['tgt'], 
+        data['dict']['tgt'],
         src_insts=data['test']['src'],
         adj_insts=data['test']['adj'],
         tgt_insts=data['test']['tgt'],
@@ -138,7 +159,9 @@ def process_data(data,opt):
         opt.tgt_vocab_size = opt.tgt_vocab_size - 4
         opt.max_ar_length = opt.tgt_vocab_size
 
-    return train_data,valid_data,test_data,label_adj_matrix,opt
+    mrmp_adj = _by_chi2_contingency(data['train']['tgt_binary'], 0.05)
+
+    return train_data,valid_data,test_data,label_adj_matrix,opt, mrmp_adj
 
 
 class DataLoader(object):
@@ -170,7 +193,7 @@ class DataLoader(object):
         self._batch_size = batch_size
 
         self._src_insts = src_insts
-        
+
         self._tgt_insts = tgt_insts
 
 
@@ -184,7 +207,7 @@ class DataLoader(object):
             self.long_input = False
 
         tgt_idx2word = {idx:word for word, idx in tgt_word2idx.items()}
-        
+
         self._tgt_word2idx = tgt_word2idx
         self._tgt_idx2word = tgt_idx2word
 
@@ -311,10 +334,10 @@ class DataLoader(object):
             src_data, src_pos = pad_to_longest(src_insts,encoder=True)
 
             src_pos = src_pos.long()
-            
+
             if self.long_input:
                 src_data = src_data.long()
-                
+
 
 
             if not self._tgt_insts:

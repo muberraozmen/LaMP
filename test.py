@@ -38,7 +38,7 @@ def test_epoch(model, test_data,opt,data_dict, description):
 					   torch.cat((src[1],torch.zeros(diff,src[1].size(1)).type(src[1].type()).cuda()),0)]
 				tgt = torch.cat((tgt,torch.zeros(diff,tgt.size(1)).type(tgt.type()).cuda()),0)
 				
-			pred,enc_output,*results = model(src,adj, None, None,int_preds=opt.int_preds)
+			pred,reln_dist, enc_output,*results = model(src,adj, None, None,int_preds=opt.int_preds)
 
 			if pad_batch:
 				pred = pred[0:batch[0][0].size(0)]
@@ -48,7 +48,7 @@ def test_epoch(model, test_data,opt,data_dict, description):
 
 			norm_pred = F.sigmoid(pred).data
 
-			bce_loss =  F.binary_cross_entropy_with_logits(pred, gold_binary,reduction='mean')
+			bce_loss =  F.binary_cross_entropy_with_logits(pred, gold_binary,reduction='mean') + reln_dist.mean()
 			bce_total += bce_loss.item()
 
 						

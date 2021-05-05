@@ -10,6 +10,7 @@ from lamp.SubLayers import XavierLinear
 from pdb import set_trace as stop 
 from lamp import utils
 import copy
+from lamp.Modules import MrMP
 
 
 
@@ -98,14 +99,25 @@ class GraphDecoder(nn.Module):
             self, n_tgt_vocab, n_max_seq, n_layers=6, n_head=8,n_head2=8, d_k=64, d_v=64,
             d_word_vec=512, d_model=512, d_inner_hid=1024, dropout=0.1,dropout2=0.1,
             no_dec_self_att=False,label_adj_matrix=None,label_mask=None,
-            enc_vec=True,graph_conv=False,attn_type='softmax'):
+            enc_vec=True,graph_conv=False,attn_type='softmax', mrmp_adj=None, reln_loss_on=False):
         super(GraphDecoder, self).__init__()
         self.enc_vec = enc_vec
         self.dropout = nn.Dropout(dropout)
         self.constant_input = torch.from_numpy(np.arange(n_tgt_vocab)).view(-1,1)
 
         self.tgt_word_emb = nn.Embedding(n_tgt_vocab, d_word_vec)
-        
+
+        if mrmp_adj is not None:
+            if len(mrmp_adj) == 2:
+                self.mrmp = MrMP(mrmp_adj)
+            elif len(mrmp_adj) > 2:
+                for index in range(len(mrmp_adj)):
+                    self.add_module('mrmp' + str(index), MrMP(mrmp_adj[index]))
+            # self.w_cg = XavierLinear(d_word_vec, d_word_vec, bias=False)
+            if reln_loss_on is True:
+                self.loss_relns = mrmp_adj
+
+
         if label_adj_matrix is not None:
             for i in range(label_adj_matrix.size(0)):
                 if label_adj_matrix[i].sum().item() < 1:
@@ -129,9 +141,26 @@ class GraphDecoder(nn.Module):
         if int_preds: int_outs = []
         if return_attns: dec_slf_attns, dec_enc_attns = [], []
 
-        tgt_seq = self.constant_input.repeat(1,batch_size).transpose(0,1).cuda()
+        tgt_seq = self.constant_input.transpose(0,1).cuda()
+        # KK tgt_seq = self.constant_input.transpose(0,1)
 
-        dec_input = self.tgt_word_emb(tgt_seq)
+        label_embeddings = self.tgt_word_emb(tgt_seq)
+
+        reln_dist = None
+        if hasattr(self, 'mrmp'):
+            cg_output = self.mrmp(label_embeddings)
+            if hasattr(self, 'loss_relns'):
+                cg_output = cg_output.squeeze()
+                cg_output = cg_output / cg_output.norm(dim=1)[:, None]  # normalize rows
+                reln_dist = torch.matmul(cg_output, cg_output.transpose(0, 1))
+                reln_dist = reln_dist * self.loss_relns[0].squeeze().float() - reln_dist * self.loss_relns[1].squeeze().float()
+            # cg_output = self.w_cg(cg_output)
+            dec_input = cg_output.repeat(batch_size, 1, 1)
+
+        else:
+            dec_input = label_embeddings.repeat(batch_size, 1, 1)
+
+
 
         dec_enc_attn_pad_mask = None
         if not self.enc_vec:
@@ -156,8 +185,8 @@ class GraphDecoder(nn.Module):
                 dec_enc_attns += [dec_enc_attn]
 
         if int_preds:
-            return dec_output, int_outs
+            return dec_output, reln_dist, int_outs
         elif return_attns:
-            return dec_output, dec_slf_attns, dec_enc_attns
+            return dec_output, reln_dist, dec_slf_attns, dec_enc_attns
         else:
-            return dec_output, None         
+            return dec_output, reln_dist, None
