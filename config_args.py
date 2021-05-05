@@ -5,7 +5,7 @@ import os
 # CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py -dataset delicious -save_mode best -batch_size 32 -d_model 512 -n_layers_enc 3 -n_layers_dec 3 -n_head 4 -epoch 50 -dropout 0.2 -dec_dropout 0.2 -lr 0.0002 -encoder 'graph' -decoder 'graph' -proj_share_weight -br_threshold 0.5 -dec_reverse -loss 'ce' -adv_lambda 1.0 -adv_type 'gan' -overwrite -thresh1 1 -int_preds -multi_gpu -test_batch_size 19
 
 def get_args(parser):
-	parser.add_argument('-dataroot', type=str, default='data/')
+	parser.add_argument('-dataroot', type=str, default='/Users/mob/Documents/PycharmProjects/mlc/data/')
 	parser.add_argument('-dataset', type=str, default='reuters')
 	parser.add_argument('-results_dir', type=str, default='results/')
 	parser.add_argument('-epoch', type=int, default=50)

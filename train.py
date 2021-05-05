@@ -32,6 +32,8 @@ def train_epoch(model,train_data, crit, optimizer,adv_optimizer,epoch,data_dict,
 
 		if opt.binary_relevance:
 			gold_binary = utils.get_gold_binary(gold.data.cpu(),opt.tgt_vocab_size).cuda()
+			# KK gold_binary = utils.get_gold_binary(gold.data.cpu(),opt.tgt_vocab_size)
+
 			optimizer.zero_grad()
 			pred,enc_output,*results = model(src,adj,None,gold_binary,return_attns=opt.attns_loss,int_preds=opt.int_preds)
 			norm_pred = F.sigmoid(pred)

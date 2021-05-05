@@ -62,7 +62,7 @@ def process_data(data,opt):
 
         label_adj_matrix = adj_matrix
 
-    
+    '''
     label_vals = torch.zeros(len(data['train']['tgt']),len(data['dict']['tgt']))
     for i in range(len(data['train']['tgt'])):
         indices = torch.from_numpy(np.array(data['train']['tgt'][i]))
@@ -84,6 +84,8 @@ def process_data(data,opt):
         sample = sorted(sample, key=ranking.index)
     for sample in data['test']['tgt']:
         sample = sorted(sample, key=ranking.index)
+    
+    '''
 
     opt.max_token_seq_len_e = data['settings'].max_seq_len
     opt.max_token_seq_len_d = opt.max_ar_length
